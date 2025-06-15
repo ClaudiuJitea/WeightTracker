@@ -1,10 +1,10 @@
-# 🏃‍♂️ HealthTracker - Personal Health & Fitness Management System
+# ⚖️ WeightTracker - Personal Weight Management System
 
 ![HealthTracker Dashboard](https://github.com/ClaudiuJitea/WeightTracker/blob/main/app/static/images/screen01.png?raw=true)
 
 ![HealthTracker Features](https://github.com/ClaudiuJitea/WeightTracker/blob/main/app/static/images/screen02.png?raw=true)
 
-A comprehensive web application for tracking weight, calories, fasting sessions, and overall health metrics. Built with Flask and featuring a modern, responsive design with dark mode support.
+A comprehensive weight tracking web application with additional features for calories and fasting monitoring. Built with Flask and featuring a modern, responsive design with dark mode support.
 
 ## ✨ Features
 
