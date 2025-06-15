@@ -1,4 +1,4 @@
-# ⚖️ WeightTracker - Personal Weight Management System
+# WeightTracker - Personal Weight Management System
 
 ![HealthTracker Dashboard](https://github.com/ClaudiuJitea/WeightTracker/blob/main/app/static/images/screen01.png?raw=true)
 
