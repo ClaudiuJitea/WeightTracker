@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-5 sm:px-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Update your profile information</p>
+</div>
+
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <div>
+                <label for="height" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ form.height.label }}
+                </label>
+                <div class="mt-1">
+                    {{ form.height(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                </div>
+                {% for error in form.height.errors %}
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="pt-5">
+                {{ form.submit(class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">About Height Measurement</h2>
+        <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <p>Your height is used to calculate your BMI (Body Mass Index) accurately. Please ensure you enter your height in centimeters.</p>
+            <ul class="mt-4 list-disc list-inside space-y-2">
+                <li>Height should be measured without shoes</li>
+                <li>Stand straight against a wall</li>
+                <li>Keep your head level</li>
+                <li>Take the measurement in the morning if possible</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-5 sm:px-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Your TDEE Results</h1>
+</div>
+
+{% if goal == 'water_fast' %}
+<div class="mb-6 bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 p-4">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Water Fasting Warning</h3>
+            <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                <p>Water fasting should only be undertaken with proper medical supervision. Please consult your healthcare provider before starting any fasting regimen. Extended fasting can be dangerous if not done properly.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <!-- BMR Card -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                Basal Metabolic Rate (BMR)
+            </dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">
+                {{ bmr }} calories
+            </dd>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                This is the number of calories your body burns at rest to maintain vital functions.
+            </p>
+        </div>
+    </div>
+
+    <!-- TDEE Card -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                {% if goal == 'water_fast' %}
+                Recommended Calorie Intake (Water Fast)
+                {% else %}
+                Total Daily Energy Expenditure (TDEE)
+                {% endif %}
+            </dt>
+            <dd class="mt-1 text-3xl font-semibold text-blue-600 dark:text-blue-400">
+                {{ tdee }} calories
+            </dd>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                {% if goal == 'water_fast' %}
+                During water fasting, calorie intake should be 0. Your body will use stored fat for energy.
+                {% else %}
+                This is your recommended daily calorie intake based on your activity level and goals.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Explanation Section -->
+<div class="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">What These Numbers Mean</h2>
+        <div class="mt-2 text-sm text-gray-500 dark:text-gray-400 space-y-4">
+            <p>Your BMR ({{ bmr }} calories) represents the minimum number of calories your body needs to perform basic life-sustaining functions like breathing, circulation, and cell production.</p>
+            
+            {% if goal == 'water_fast' %}
+            <div class="mt-4">
+                <h3 class="text-base font-medium text-gray-900 dark:text-white">Water Fasting Guidelines:</h3>
+                <ul class="mt-2 list-disc list-inside space-y-2">
+                    <li>Drink plenty of water (2-3 liters per day)</li>
+                    <li>Consider electrolyte supplementation</li>
+                    <li>Break fast immediately if you feel unwell</li>
+                    <li>Start with shorter fasting periods</li>
+                    <li>Monitor your body's signals carefully</li>
+                </ul>
+            </div>
+            {% else %}
+            <p>Your TDEE ({{ tdee }} calories) takes into account your activity level and weight goals. This is the number of calories you should aim to consume daily to achieve your goals.</p>
+            <div class="mt-4">
+                <h3 class="text-base font-medium text-gray-900 dark:text-white">Tips for Success:</h3>
+                <ul class="mt-2 list-disc list-inside space-y-2">
+                    <li>Track your food intake accurately using the calorie calculator</li>
+                    <li>Be consistent with your eating habits</li>
+                    <li>Adjust your intake if you're not seeing desired results after 2-3 weeks</li>
+                    <li>Remember that these are estimates - individual results may vary</li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="mt-8 flex space-x-4">
+    <a href="{{ url_for('calories.calculate_tdee') }}" 
+       class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
+        <i class="fas fa-calculator mr-2"></i>
+        Recalculate
+    </a>
+    {% if goal != 'water_fast' %}
+    <a href="{{ url_for('calories.calculator') }}"
+       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
+        <i class="fas fa-utensils mr-2"></i>
+        Start Tracking Calories
+    </a>
+    {% else %}
+    <a href="{{ url_for('fasting.start_fast') }}"
+       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
+        <i class="fas fa-clock mr-2"></i>
+        Start Fasting Timer
+    </a>
+    {% endif %}
+</div>
+{% endblock %} 

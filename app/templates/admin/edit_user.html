@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - Weight Tracker{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+                <i class="fas fa-user-edit mr-2"></i>Edit User: {{ user.username }}
+            </h1>
+            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                Update user account information and permissions.
+            </p>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <a href="{{ url_for('admin.users') }}" 
+               class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Users
+            </a>
+        </div>
+    </div>
+
+    <div class="mt-8 max-w-md mx-auto">
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="space-y-6">
+                        <div>
+                            {{ form.username.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300") }}
+                            <div class="mt-1">
+                                {{ form.username(class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm") }}
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                                    {% for error in form.username.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            {{ form.email.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300") }}
+                            <div class="mt-1">
+                                {{ form.email(class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm") }}
+                            </div>
+                            {% if form.email.errors %}
+                                <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                                    {% for error in form.email.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if user.id != current_user.id %}
+                        <div class="flex items-center">
+                            <div class="flex items-center h-5">
+                                {{ form.is_admin(class="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600 rounded") }}
+                            </div>
+                            <div class="ml-3 text-sm">
+                                {{ form.is_admin.label(class="font-medium text-gray-700 dark:text-gray-300") }}
+                                <p class="text-gray-500 dark:text-gray-400">Grant administrative privileges to this user.</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-md p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-200">
+                                        You cannot modify your own admin privileges.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">User Information</h3>
+                            <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">User ID</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ user.id }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Join Date</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {% if user.created_at %}
+                                            {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Login</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {% if user.last_login %}
+                                            {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                                        {% else %}
+                                            Never
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Height</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {% if user.height %}
+                                            {{ user.height }} cm
+                                        {% else %}
+                                            Not set
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="flex justify-end space-x-3">
+                            <a href="{{ url_for('admin.users') }}" 
+                               class="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                Cancel
+                            </a>
+                            <a href="{{ url_for('admin.change_user_password', id=user.id) }}" 
+                               class="inline-flex justify-center py-2 px-4 border border-yellow-300 dark:border-yellow-600 shadow-sm text-sm font-medium rounded-md text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900 hover:bg-yellow-100 dark:hover:bg-yellow-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                <i class="fas fa-key mr-2"></i>Change Password
+                            </a>
+                            {{ form.submit(class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

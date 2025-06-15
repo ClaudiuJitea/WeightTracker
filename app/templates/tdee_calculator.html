@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-5 sm:px-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">TDEE Calculator</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Calculate your Total Daily Energy Expenditure</p>
+</div>
+
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <!-- Weight Field -->
+                <div>
+                    <label for="weight" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ form.weight.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ form.weight(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                    {% for error in form.weight.errors %}
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Height Field -->
+                <div>
+                    <label for="height" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ form.height.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ form.height(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                    {% for error in form.height.errors %}
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Age Field -->
+                <div>
+                    <label for="age" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ form.age.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ form.age(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                    {% for error in form.age.errors %}
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Gender Field -->
+                <div>
+                    <label for="gender" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ form.gender.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ form.gender(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                    {% for error in form.gender.errors %}
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Activity Level Field -->
+            <div>
+                <label for="activity_level" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ form.activity_level.label }}
+                </label>
+                <div class="mt-1">
+                    {{ form.activity_level(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                </div>
+                {% for error in form.activity_level.errors %}
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Goal Field -->
+            <div>
+                <label for="goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ form.goal.label }}
+                </label>
+                <div class="mt-1">
+                    {{ form.goal(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                </div>
+                {% for error in form.goal.errors %}
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                {{ form.submit(class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Information Section -->
+<div class="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">About TDEE</h2>
+        <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <p>Total Daily Energy Expenditure (TDEE) is an estimation of how many calories you burn per day when exercise is taken into account. It is calculated by first finding your Basal Metabolic Rate (BMR), then multiplying that value by an activity multiplier.</p>
+            <ul class="mt-4 list-disc list-inside space-y-2">
+                <li><strong class="text-gray-900 dark:text-white">BMR (Basal Metabolic Rate):</strong> The number of calories your body burns at rest to maintain vital functions.</li>
+                <li><strong class="text-gray-900 dark:text-white">Activity Multiplier:</strong> A factor based on your activity level that accounts for calories burned during daily activities and exercise.</li>
+                <li><strong class="text-gray-900 dark:text-white">Goal Adjustment:</strong> ±500 calories for weight loss/gain goals (approximately 1 pound per week).</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %} 

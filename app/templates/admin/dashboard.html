@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Weight Tracker{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+                <i class="fas fa-user-shield mr-2"></i>Admin Dashboard
+            </h1>
+            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                Manage users and system settings for Weight Tracker.
+            </p>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <a href="{{ url_for('admin.create_user') }}" 
+               class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                <i class="fas fa-user-plus mr-2"></i>Add User
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-users text-gray-400 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                                Total Users
+                            </dt>
+                            <dd class="text-lg font-medium text-gray-900 dark:text-white">
+                                {{ total_users }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-user-shield text-purple-400 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                                Administrators
+                            </dt>
+                            <dd class="text-lg font-medium text-gray-900 dark:text-white">
+                                {{ admin_users }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-user text-blue-400 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                                Regular Users
+                            </dt>
+                            <dd class="text-lg font-medium text-gray-900 dark:text-white">
+                                {{ regular_users }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-bolt mr-2"></i>Quick Actions
+        </h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <a href="{{ url_for('admin.users') }}" 
+               class="relative group bg-white dark:bg-gray-800 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary rounded-lg shadow hover:shadow-md transition-shadow">
+                <div>
+                    <span class="rounded-lg inline-flex p-3 bg-purple-50 dark:bg-purple-900 text-purple-600 dark:text-purple-400">
+                        <i class="fas fa-users text-xl"></i>
+                    </span>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                        Manage Users
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        View, edit, and manage all user accounts.
+                    </p>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.create_user') }}" 
+               class="relative group bg-white dark:bg-gray-800 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary rounded-lg shadow hover:shadow-md transition-shadow">
+                <div>
+                    <span class="rounded-lg inline-flex p-3 bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-400">
+                        <i class="fas fa-user-plus text-xl"></i>
+                    </span>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                        Create User
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        Add a new user to the system.
+                    </p>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.change_admin_password') }}" 
+               class="relative group bg-white dark:bg-gray-800 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary rounded-lg shadow hover:shadow-md transition-shadow">
+                <div>
+                    <span class="rounded-lg inline-flex p-3 bg-yellow-50 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400">
+                        <i class="fas fa-key text-xl"></i>
+                    </span>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                        Change Password
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        Update your admin password.
+                    </p>
+                </div>
+            </a>
+
+            <a href="{{ url_for('main.dashboard') }}" 
+               class="relative group bg-white dark:bg-gray-800 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary rounded-lg shadow hover:shadow-md transition-shadow">
+                <div>
+                    <span class="rounded-lg inline-flex p-3 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400">
+                        <i class="fas fa-home text-xl"></i>
+                    </span>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                        Main Dashboard
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        Return to the main application.
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="mt-8">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-clock mr-2"></i>Recent Users
+        </h2>
+        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+            <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                {% for user in users[-5:] %}
+                <li>
+                    <div class="px-4 py-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                {% if user.is_admin %}
+                                    <i class="fas fa-user-shield text-purple-500"></i>
+                                {% else %}
+                                    <i class="fas fa-user text-gray-400"></i>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                    {{ user.username }}
+                                    {% if user.is_admin %}
+                                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                            Admin
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ user.email }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            {% if user.created_at %}
+                                Joined {{ user.created_at.strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

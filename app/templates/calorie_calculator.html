@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-5 sm:px-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Calorie Calculator</h1>
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Add Food Entry Form -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Add Food Entry</h3>
+            <form method="POST" class="mt-5 space-y-4">
+                {{ form.hidden_tag() }}
+                <div>
+                    <label for="food_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Food Name</label>
+                    <div class="mt-1">
+                        {{ form.food_name(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                </div>
+                <div>
+                    <label for="calories" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Calories</label>
+                    <div class="mt-1">
+                        {{ form.calories(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                </div>
+                <div>
+                    <label for="meal_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Meal Type</label>
+                    <div class="mt-1">
+                        {{ form.meal_type(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                </div>
+                <div>
+                    <label for="protein" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Protein (g)</label>
+                    <div class="mt-1">
+                        {{ form.protein(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                </div>
+                <div>
+                    <label for="carbs" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Carbs (g)</label>
+                    <div class="mt-1">
+                        {{ form.carbs(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                </div>
+                <div>
+                    <label for="fat" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fat (g)</label>
+                    <div class="mt-1">
+                        {{ form.fat(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                </div>
+                <div>
+                    <label for="fiber" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fiber (g)</label>
+                    <div class="mt-1">
+                        {{ form.fiber(class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
+                        Add Food Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Today's Summary -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Today's Summary</h3>
+            <dl class="mt-5 grid grid-cols-1 gap-5">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Daily Goal</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{{ daily_goal }} kcal</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Consumed</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-blue-600 dark:text-blue-400">{{ calories_consumed }} kcal</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Remaining</dt>
+                    <dd class="mt-1 text-3xl font-semibold {% if calories_remaining > 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                        {{ calories_remaining }} kcal
+                    </dd>
+                </div>
+            </dl>
+            <!-- Progress Bar -->
+            <div class="mt-6">
+                <div class="relative pt-1">
+                    <div class="flex mb-2 items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold inline-block text-blue-600 dark:text-blue-400">
+                                {{ (calories_consumed / daily_goal * 100)|round|int }}% of daily goal
+                            </span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200 dark:bg-blue-900">
+                        {% set progress_percentage = (calories_consumed / daily_goal * 100)|round|int %}
+                        <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
+                             {% if progress_percentage > 0 %}style="width: {{ progress_percentage }}%"{% else %}style="width: 0%"{% endif %}>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Food Log -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Today's Food Log</h3>
+            <div class="mt-5 space-y-4">
+                {% if food_entries %}
+                    {% for entry in food_entries %}
+                        <div class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+                            <div class="flex-grow">
+                                <div class="flex items-center">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white" id="food-{{ entry.id }}">{{ entry.food_name }}</p>
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    {% if entry.protein or entry.carbs or entry.fat %}
+                                        P: {{ entry.protein|round|int }}g | C: {{ entry.carbs|round|int }}g | F: {{ entry.fat|round|int }}g
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    {{ entry.calories }} kcal
+                                </span>
+                                <form action="{{ url_for('calories.delete_entry', entry_id=entry.id) }}" method="POST" class="inline">
+                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300" onclick="return confirm('Are you sure you want to delete this entry?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-gray-500 dark:text-gray-400 text-center">No food entries today</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Information Section -->
+<div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- Nutritional Breakdown -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Nutritional Breakdown</h3>
+            <dl class="mt-5 grid grid-cols-1 gap-5">
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Protein</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ daily_nutrients.protein|round|int }}g / {{ target_nutrients.protein|round|int }}g
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Carbs</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ daily_nutrients.carbs|round|int }}g / {{ target_nutrients.carbs|round|int }}g
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Fat</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ daily_nutrients.fat|round|int }}g / {{ target_nutrients.fat|round|int }}g
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Fiber</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ daily_nutrients.fiber|round|int }}g / {{ target_nutrients.fiber|round|int }}g
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Weekly Overview -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Weekly Overview</h3>
+            <dl class="mt-5 grid grid-cols-1 gap-5">
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Average Daily Calories</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ weekly_stats.avg_calories|round|int if weekly_stats else 0 }} kcal/day
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Calorie Goal Adherence</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ weekly_stats.goal_adherence|round|int if weekly_stats else 0 }}%
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Meal Time Distribution -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Meal Time Distribution</h3>
+            <dl class="mt-5 grid grid-cols-1 gap-5">
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Breakfast (6AM-11AM)</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ meal_distribution.breakfast|round|int if meal_distribution else 0 }} kcal
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Lunch (11AM-4PM)</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ meal_distribution.lunch|round|int if meal_distribution else 0 }} kcal
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Dinner (4PM-10PM)</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">
+                        {{ meal_distribution.dinner|round|int if meal_distribution else 0 }} kcal
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Most Frequent Foods -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Most Frequent Foods</h3>
+            <div class="mt-5">
+                {% if frequent_foods %}
+                    <ul class="space-y-3">
+                        {% for food in frequent_foods %}
+                            <li class="flex justify-between">
+                                <span class="text-sm text-gray-900 dark:text-white">{{ food.name }}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ food.count }}x ({{ food.calories }} kcal avg)
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No frequent foods logged yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calculate TDEE Button -->
+<div class="mt-8">
+    <a href="{{ url_for('calories.calculate_tdee') }}"
+       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
+        <i class="fas fa-calculator mr-2"></i>
+        Calculate TDEE
+    </a>
+</div>
+{% endblock %} 

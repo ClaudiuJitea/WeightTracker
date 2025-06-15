@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+<!-- @ts-nocheck -->
+
+{% block content %}
+<div class="px-4 py-5 sm:px-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Weight Tracker</h1>
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Add Weight Entry Form -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Add Weight Entry</h3>
+            <form method="POST" class="mt-5 space-y-4">
+                {{ form.hidden_tag() }}
+                <div>
+                    <label for="weight" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Weight (kg)</label>
+                    <div class="mt-1">
+                        {{ form.weight(class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                    {% if form.weight.errors %}
+                        {% for error in form.weight.errors %}
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-gray-800">
+                        Save Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Statistics</h3>
+            <dl class="mt-5 grid grid-cols-1 gap-5">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Starting Weight</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{{ starting_weight|default('No data') }} kg</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Current Weight</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{{ current_weight|default('No data') }} kg</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Loss</dt>
+                    <dd class="mt-1 text-3xl font-semibold {% if total_loss and total_loss < 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                        {% if total_loss is not none %}
+                            {{ "%.2f"|format(total_loss) }} kg
+                        {% else %}
+                            0.00 kg
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Goal Progress -->
+    {% if active_goal %}
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Goal Progress</h3>
+            
+            <!-- Goal Achievement Check -->
+            {% if active_goal and current_weight and ((active_goal.start_weight > active_goal.target_weight and current_weight <= active_goal.target_weight) or 
+                  (active_goal.start_weight < active_goal.target_weight and current_weight >= active_goal.target_weight)) %}
+            <div class="mt-2 mb-4 p-3 bg-green-100 dark:bg-green-900 rounded-md">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-600 dark:text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-green-800 dark:text-green-200">Goal Achieved!</h3>
+                        <div class="mt-1 text-sm text-green-700 dark:text-green-300">
+                            Congratulations! You've reached your target weight of {{ active_goal.target_weight }} kg.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <dl class="mt-5 grid grid-cols-1 gap-5">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Target</dt>
+                    <dd class="mt-1">
+                        <div class="text-xl font-semibold text-gray-900 dark:text-white">
+                            {{ active_goal.target_weight }} kg
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            by {{ active_goal.target_date.strftime('%Y-%m-%d') }}
+                        </div>
+                    </dd>
+                </div>
+
+                <!-- Daily Progress -->
+                <div>
+                    <dt class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Daily Progress</dt>
+                    <dd class="mt-1">
+                        <div class="flex items-center">
+                            <div class="flex-grow">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                    Goal: {{ "%.2f"|format(active_goal.daily_goal|abs) }} kg/day
+                                </div>
+                                {% if current_weight and starting_weight %}
+                                <div class="text-sm {% if recent_progress and recent_progress.daily is not none and recent_progress.daily <= active_goal.daily_goal %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                    Actual: {{ "%.2f"|format(recent_progress.daily|abs) }} kg/day
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% if current_weight and starting_weight %}
+                            {% set daily_progress = (recent_progress.daily / active_goal.daily_goal * 100) if recent_progress and recent_progress.daily is not none and active_goal.daily_goal != 0 and recent_progress.daily <= 0 else 0 %}
+                            <div class="ml-2 text-sm font-medium {% if daily_progress >= 100 %}text-green-600 dark:text-green-400{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                                {{ "%.0f"|format(daily_progress) }}%
+                            </div>
+                            {% endif %}
+                        </div>
+                    </dd>
+                </div>
+
+                <!-- Weekly Progress -->
+                <div>
+                    <dt class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Weekly Progress</dt>
+                    <dd class="mt-1">
+                        <div class="flex items-center">
+                            <div class="flex-grow">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                    Goal: {{ "%.2f"|format(active_goal.weekly_goal|abs) }} kg/week
+                                </div>
+                                {% if current_weight and starting_weight %}
+                                <div class="text-sm {% if recent_progress and recent_progress.weekly is not none and recent_progress.weekly <= active_goal.weekly_goal %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                    Actual: {{ "%.2f"|format(recent_progress.weekly|abs) }} kg/week
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% if current_weight and starting_weight %}
+                            {% set weekly_progress = (recent_progress.weekly / active_goal.weekly_goal * 100) if recent_progress and recent_progress.weekly is not none and active_goal.weekly_goal != 0 and recent_progress.weekly <= 0 else 0 %}
+                            <div class="ml-2 text-sm font-medium {% if weekly_progress >= 100 %}text-green-600 dark:text-green-400{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                                {{ "%.0f"|format(weekly_progress) }}%
+                            </div>
+                            {% endif %}
+                        </div>
+                    </dd>
+                </div>
+
+                <!-- Monthly Progress -->
+                <div>
+                    <dt class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Monthly Progress</dt>
+                    <dd class="mt-1">
+                        <div class="flex items-center">
+                            <div class="flex-grow">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                    Goal: {{ "%.2f"|format(active_goal.monthly_goal|abs) }} kg/month
+                                </div>
+                                {% if current_weight and starting_weight %}
+                                <div class="text-sm {% if recent_progress and recent_progress.monthly is not none and recent_progress.monthly <= active_goal.monthly_goal %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                    Actual: {{ "%.2f"|format(recent_progress.monthly|abs) }} kg/month
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% if current_weight and starting_weight %}
+                            {% set monthly_progress = (recent_progress.monthly / active_goal.monthly_goal * 100) if recent_progress and recent_progress.monthly is not none and active_goal.monthly_goal != 0 and recent_progress.monthly <= 0 else 0 %}
+                            <div class="ml-2 text-sm font-medium {% if monthly_progress >= 100 %}text-green-600 dark:text-green-400{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                                {{ "%.0f"|format(monthly_progress) }}%
+                            </div>
+                            {% endif %}
+                        </div>
+                    </dd>
+                </div>
+
+                <div class="mt-2">
+                    {% if active_goal.completed %}
+                    <div class="flex items-center justify-between">
+                        <form action="{{ url_for('weight.cancel_goal') }}" method="POST" class="inline-block">
+                            <button type="submit" class="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 py-1">
+                                Cancel Goal
+                            </button>
+                        </form>
+                        <button onclick="document.getElementById('set-new-goal-modal').classList.remove('hidden')" class="text-sm text-primary hover:text-purple-700 dark:text-primary dark:hover:text-purple-400 py-1">
+                            Set New Goal
+                        </button>
+                    </div>
+                    {% else %}
+                    <form action="{{ url_for('weight.cancel_goal') }}" method="POST">
+                        <button type="submit" class="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 py-1">
+                            Cancel Goal
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </dl>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Set Weight Goal -->
+    {% if not active_goal %}
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Set Weight Goal</h3>
+            <form method="POST" action="{{ url_for('weight.set_goal') }}" class="mt-5 space-y-4">
+                {{ goal_form.csrf_token }}
+                <div>
+                    <label for="target_weight" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Weight (kg)</label>
+                    <div class="mt-1">
+                        {{ goal_form.target_weight(class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                    {% if goal_form.target_weight.errors %}
+                        {% for error in goal_form.target_weight.errors %}
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="goal_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Goal Type</label>
+                    <div class="mt-1">
+                        {{ goal_form.goal_type(class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                    </div>
+                    {% if goal_form.goal_type.errors %}
+                        {% for error in goal_form.goal_type.errors %}
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="target_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Date</label>
+                    <div class="mt-1">
+                        {{ goal_form.target_date(class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md", type="date") }}
+                    </div>
+                    {% if goal_form.target_date.errors %}
+                        {% for error in goal_form.target_date.errors %}
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div>
+                    {{ goal_form.submit(class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-gray-800") }}
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Weight History -->
+{% if weight_entries %}
+<div class="mt-6">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Weight History</h3>
+            <div class="mt-5 space-y-3">
+                {% for entry in weight_entries %}
+                    <div class="flex items-center justify-between py-4 px-6 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-150">
+                        <!-- Left section: Weight and Time -->
+                        <div class="flex items-center space-x-12">
+                            <div class="w-40">
+                                <div class="flex items-center">
+                                    <p class="text-xl font-semibold text-gray-900 dark:text-white" id="weight-{{ entry.id }}">{{ entry.weight }} kg</p>
+                                    <form class="hidden ml-2" id="edit-form-{{ entry.id }}" action="{{ url_for('weight.edit_entry', entry_id=entry.id) }}" method="POST">
+                                        <input type="number" name="weight" step="0.1" min="20" max="500" value="{{ entry.weight }}" 
+                                               class="w-20 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md">
+                                        <button type="submit" class="ml-1 text-green-600 dark:text-green-400">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button type="button" onclick="toggleEdit('{{ entry.id }}')" class="ml-1 text-gray-600 dark:text-gray-400">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ entry.date.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+
+                            <!-- Middle section: Change and Time Difference -->
+                            {% if not loop.last %}
+                                {% set next_entry = weight_entries[loop.index] %}
+                                {% set weight_diff = entry.weight - next_entry.weight %}
+                                {% set time_diff = (entry.date - next_entry.date).total_seconds() / 3600 %}
+                                <div class="w-48 flex flex-col items-start">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium {% if weight_diff < 0 %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                                            {{ '%+.1f'|format(weight_diff) }} kg
+                                        </span>
+                                        {% if time_diff > 0 %}
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                ({{ '%.1f'|format(weight_diff / (time_diff/24)) }} kg/day)
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        {% if time_diff < 24 %}
+                                            {{ '%.1f'|format(time_diff) }} hours ago
+                                        {% else %}
+                                            {{ '%.1f'|format(time_diff/24) }} days ago
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            {% endif %}
+
+                            <!-- Empty space for alignment when it's the first record -->
+                            {% if loop.last %}
+                                <div class="w-48"></div>
+                            {% endif %}
+
+                            <!-- Right section: Stats -->
+                            <div class="flex space-x-12">
+                                <!-- BMI -->
+                                <div class="w-28 text-center">
+                                    {% if current_user.height %}
+                                        {% set height_in_meters = current_user.height / 100 %}
+                                        {% set bmi = entry.weight / (height_in_meters * height_in_meters) %}
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">BMI</p>
+                                        <p class="text-sm {% if bmi < 18.5 %}text-blue-600{% elif bmi < 25 %}text-green-600{% elif bmi < 30 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                            {{ '%.1f'|format(bmi) }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {% if bmi < 18.5 %}
+                                                Underweight
+                                            {% elif bmi < 25 %}
+                                                Normal
+                                            {% elif bmi < 30 %}
+                                                Overweight
+                                            {% else %}
+                                                Obese
+                                            {% endif %}
+                                        </p>
+                                    {% else %}
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">BMI</p>
+                                        <p class="text-sm text-gray-500">Not available</p>
+                                        <p class="text-xs text-gray-500">
+                                            <a href="{{ url_for('main.profile') }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Set height</a>
+                                        </p>
+                                    {% endif %}
+                                </div>
+
+                                {% if loop.last %}
+                                    <!-- Empty spaces for last record -->
+                                    <div class="w-28"></div>
+                                    <div class="w-28"></div>
+                                {% else %}
+                                    <!-- Fasting Status -->
+                                    <div class="w-28 text-center">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Fasting</p>
+                                        {% if current_fast and not current_fast.completed %}
+                                            <p class="text-sm text-green-600 dark:text-green-400">
+                                                Yes ({{ '%.1f'|format(current_fast.duration) }}h)
+                                            </p>
+                                        {% else %}
+                                            <p class="text-sm text-red-600 dark:text-red-400">
+                                                No
+                                            </p>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Trend -->
+                                    <div class="w-28 text-center">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Trend</p>
+                                        <p class="text-2xl {% if weight_diff < 0 %}text-green-600 dark:text-green-400{% elif weight_diff > 0 %}text-red-600 dark:text-red-400{% else %}text-gray-600 dark:text-gray-400{% endif %}">
+                                            {% if weight_diff < 0 %}↓{% elif weight_diff > 0 %}↑{% else %}→{% endif %}
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center space-x-2 ml-6">
+                            <button onclick="toggleEdit('{{ entry.id }}')" 
+                                    class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-full transition-colors duration-150">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form action="{{ url_for('weight.delete_entry', entry_id=entry.id) }}" method="POST" class="inline">
+                                <button type="submit" 
+                                        class="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-full transition-colors duration-150"
+                                        onclick="return confirm('Are you sure you want to delete this entry?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Script to handle goal type and target date field -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const goalTypeSelect = document.getElementById('goal_type');
+        const targetDateField = document.getElementById('target_date');
+        
+        if (goalTypeSelect && targetDateField) {
+            // Initial check on page load
+            toggleTargetDateField();
+            
+            // Add event listener for changes
+            goalTypeSelect.addEventListener('change', toggleTargetDateField);
+            
+            function toggleTargetDateField() {
+                // Enable target date only if 'custom' is selected
+                if (goalTypeSelect.value === 'custom') {
+                    targetDateField.disabled = false;
+                    targetDateField.parentElement.parentElement.classList.remove('opacity-50');
+                } else {
+                    targetDateField.disabled = true;
+                    targetDateField.parentElement.parentElement.classList.add('opacity-50');
+                }
+            }
+        }
+    });
+</script>
+
+<!-- Weight Progress Chart -->
+<div class="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Progress Chart</h3>
+        <div class="mt-5">
+            <div class="relative" style="height: 400px; width: 100%;">
+                <canvas id="weightChart" 
+                        data-weights='{{ weights|default([])|tojson|safe }}' 
+                        data-dates='{{ dates|default([])|tojson|safe }}'
+                        data-goal-line='{{ goal_line|default([])|tojson|safe }}'
+                        style="width: 100%; height: 100%;">
+                </canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Set New Goal Modal -->
+<div id="set-new-goal-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Set New Weight Goal</h3>
+            <div class="mt-2 px-7 py-3">
+                <form method="POST" action="{{ url_for('weight.set_goal') }}" class="space-y-4">
+                    {{ goal_form.csrf_token }}
+                    <div>
+                        <label for="target_weight" class="block text-sm font-medium text-gray-700 dark:text-gray-300 text-left">Target Weight (kg)</label>
+                        <div class="mt-1">
+                            {{ goal_form.target_weight(class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                        </div>
+                    </div>
+                    <div>
+                        <label for="goal_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 text-left">Goal Type</label>
+                        <div class="mt-1">
+                            {{ goal_form.goal_type(class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md") }}
+                        </div>
+                    </div>
+                    <div>
+                        <label for="target_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 text-left">Target Date</label>
+                        <div class="mt-1">
+                            {{ goal_form.target_date(class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md", type="date") }}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mt-4">
+                        <button type="button" onclick="document.getElementById('set-new-goal-modal').classList.add('hidden')" class="py-2 px-4 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            Cancel
+                        </button>
+                        <button type="submit" class="py-2 px-4 bg-primary text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-primary">
+                            Set Goal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js and custom scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/weight_chart.js') }}"></script>
+<script>
+    // Initialize chart with data from data attributes
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartElement = document.getElementById('weightChart');
+        if (chartElement) {
+            try {
+                // Get data from data attributes with proper fallbacks
+                let chartWeights = [];
+                let chartDates = [];
+                let chartGoalLine = [];
+                
+                try {
+                    // Handle weights data
+                    const weightsData = chartElement.getAttribute('data-weights');
+                    console.log('Raw weights data:', weightsData);
+                    chartWeights = weightsData && weightsData.trim() !== '' ? 
+                        JSON.parse(weightsData) : [];
+                } catch (e) {
+                    console.error('Error parsing weights data:', e);
+                    chartWeights = [];
+                }
+                
+                try {
+                    // Handle dates data
+                    const datesData = chartElement.getAttribute('data-dates');
+                    console.log('Raw dates data:', datesData);
+                    chartDates = datesData && datesData.trim() !== '' ? 
+                        JSON.parse(datesData) : [];
+                } catch (e) {
+                    console.error('Error parsing dates data:', e);
+                    chartDates = [];
+                }
+                
+                try {
+                    // Handle goal line data
+                    const goalLineData = chartElement.getAttribute('data-goal-line');
+                    console.log('Raw goal line data:', goalLineData);
+                    chartGoalLine = goalLineData && goalLineData !== 'null' && goalLineData.trim() !== '' ? 
+                        JSON.parse(goalLineData) : [];
+                } catch (e) {
+                    console.error('Error parsing goal line data:', e);
+                    chartGoalLine = [];
+                }
+                
+                console.log('Chart Data:', {
+                    weights: chartWeights,
+                    dates: chartDates,
+                    goalLine: chartGoalLine
+                });
+                
+                // Initialize chart
+                const weightChart = initializeChart(chartWeights, chartDates, chartGoalLine);
+                
+                // Setup theme toggle
+                setupThemeToggle(weightChart);
+            } catch (error) {
+                console.error('Error initializing weight chart:', error);
+                // Display error message on canvas
+                const ctx = chartElement.getContext('2d');
+                ctx.font = '16px Arial';
+                ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151';
+                ctx.textAlign = 'center';
+                ctx.fillText('Error loading chart. Please try refreshing the page.', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            }
+        }
+    });
+</script>
+{% endblock %} 

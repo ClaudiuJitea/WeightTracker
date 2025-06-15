@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-5 sm:px-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome Back, {{ current_user.username }}!</h1>
+</div>
+
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 mb-8">
+    <!-- Weight Tracking Card -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-primary rounded-md p-3">
+                    <i class="fas fa-weight text-white text-xl"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Current Weight</dt>
+                        <dd class="flex items-baseline">
+                            <div class="text-2xl font-semibold text-gray-900 dark:text-white">{{ current_weight|default('No data') }}</div>
+                            {% if weight_change %}
+                                <div class="ml-2 flex items-baseline text-sm font-semibold {% if weight_change < 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                    {{ weight_change }} kg this week
+                                </div>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+            <div class="text-sm">
+                <a href="{{ url_for('weight.tracker') }}" class="font-medium text-primary hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">
+                    View details <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calorie Tracking Card -->
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                    <i class="fas fa-calculator text-white text-xl"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Calories Today</dt>
+                        <dd class="flex items-baseline">
+                            <div class="text-2xl font-semibold text-gray-900 dark:text-white">{{ calories_today|default('0') }}</div>
+                            <div class="ml-2 flex items-baseline text-sm font-semibold text-gray-600 dark:text-gray-400">
+                                / {{ daily_calorie_goal|default('2500') }} goal
+                            </div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+            <div class="text-sm">
+                <a href="{{ url_for('calories.calculator') }}" class="font-medium text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                    Track calories <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Progress Section -->
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Recent Progress</h3>
+        <div class="mt-5">
+            <div class="relative" style="height: 300px;">
+                {% if weights and dates %}
+                    <canvas id="weightChart"></canvas>
+                {% else %}
+                    <div class="flex items-center justify-center h-full">
+                        <p class="text-gray-500 dark:text-gray-400">No weight data available yet. Start tracking your weight to see progress!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if weights and dates %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="text/javascript">
+    (function() {
+        function initializeChart() {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            
+            const chartConfig = {
+                type: 'line',
+                data: {
+                    labels: JSON.parse('{{ dates|tojson|safe }}'),
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: JSON.parse('{{ weights|tojson|safe }}'),
+                        borderColor: '#9333EA',
+                        backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                        fill: true,
+                        tension: 0.1,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#9333EA'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: isDarkMode ? '#D1D5DB' : '#374151',
+                                font: {
+                                    size: 12
+                                },
+                                padding: 10,
+                                callback: function(value) {
+                                    return value + ' kg';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: isDarkMode ? '#D1D5DB' : '#374151',
+                                font: {
+                                    size: 12
+                                },
+                                padding: 10,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                callback: function(value, index) {
+                                    const date = new Date(this.getLabelForValue(value));
+                                    return date.toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric'
+                                    });
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: isDarkMode ? '#D1D5DB' : '#374151',
+                                font: {
+                                    size: 14
+                                },
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                            titleColor: isDarkMode ? '#FFFFFF' : '#374151',
+                            bodyColor: isDarkMode ? '#FFFFFF' : '#374151',
+                            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+                            borderWidth: 1,
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            displayColors: false,
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const date = new Date(tooltipItems[0].label);
+                                    return date.toLocaleDateString('en-US', { 
+                                        year: 'numeric',
+                                        month: 'long', 
+                                        day: 'numeric'
+                                    });
+                                },
+                                label: function(context) {
+                                    return `Weight: ${context.raw} kg`;
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Weight Progress',
+                            color: '#FFFFFF', // Directly set to white
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 30
+                            }
+                        }
+                    }
+                }
+            };
+
+            return new Chart(ctx, chartConfig);
+        }
+
+        // Initialize chart
+        const weightChart = initializeChart();
+
+        // Force an update of colors right after initialization,
+        // deferring slightly to allow other scripts to set the initial theme.
+        setTimeout(function() {
+            if (weightChart) { // Check if chart was successfully initialized
+                const isDarkMode = document.documentElement.classList.contains('dark'); // Keep for grid/tooltip, but override for text
+                
+                weightChart.options.scales.y.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                weightChart.options.scales.x.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                weightChart.options.scales.y.ticks.color = '#FFFFFF'; // Directly set to white
+                weightChart.options.scales.x.ticks.color = '#FFFFFF'; // Directly set to white
+                weightChart.options.plugins.legend.labels.color = '#FFFFFF'; // Directly set to white
+                weightChart.options.plugins.tooltip.backgroundColor = isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+                weightChart.options.plugins.tooltip.titleColor = isDarkMode ? '#FFFFFF' : '#374151'; // Tooltip can still use isDarkMode logic for now
+                weightChart.options.plugins.tooltip.bodyColor = isDarkMode ? '#FFFFFF' : '#374151';  // Tooltip can still use isDarkMode logic for now
+                weightChart.options.plugins.tooltip.borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                weightChart.options.plugins.title.color = '#FFFFFF'; // Directly set to white
+                weightChart.update();
+            }
+        }, 0); // 0ms timeout to run after current execution stack clears
+
+        // Update chart colors when theme changes
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            
+            weightChart.options.scales.y.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            weightChart.options.scales.x.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            weightChart.options.scales.y.ticks.color = '#FFFFFF'; // Directly set to white
+            weightChart.options.scales.x.ticks.color = '#FFFFFF'; // Directly set to white
+            weightChart.options.plugins.legend.labels.color = '#FFFFFF'; // Directly set to white
+            weightChart.options.plugins.tooltip.backgroundColor = isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+            weightChart.options.plugins.tooltip.titleColor = isDarkMode ? '#FFFFFF' : '#374151'; // Tooltip can still use isDarkMode logic for now
+            weightChart.options.plugins.tooltip.bodyColor = isDarkMode ? '#FFFFFF' : '#374151';  // Tooltip can still use isDarkMode logic for now
+            weightChart.options.plugins.tooltip.borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+            weightChart.options.plugins.title.color = '#FFFFFF'; // Directly set to white
+            weightChart.update();
+        });
+    })();
+</script>
+{% endif %}
+{% endblock %} 

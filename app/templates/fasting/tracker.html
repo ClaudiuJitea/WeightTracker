@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-5 sm:px-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Fasting Tracker</h1>
+</div>
+
+<!-- Top Row: Current Fast and Fasting History -->
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- Current Fast / Start Fast Form -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            {% if current_fast %}
+                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Current Fast</h3>
+                <div class="mt-5 space-y-4">
+                    <div class="relative pt-1">
+                        <div class="flex mb-2 items-center justify-between">
+                            <div>
+                                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-purple-200 dark:bg-purple-900">
+                                    Duration
+                                </span>
+                            </div>
+                            <div id="fastingTimerDisplay" class="text-2xl font-semibold text-gray-900 dark:text-white current-fast-elapsed-time">
+                                {{ "%02d:%02d:%02d"|format(current_fast.duration_components.hours, current_fast.duration_components.minutes, current_fast.duration_components.seconds) }}
+                            </div>
+                        </div>
+                        <div class="flex mb-2 items-center justify-between">
+                            <div>
+                                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-purple-200 dark:bg-purple-900">
+                                    Progress
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <span id="fastingProgressText" class="text-xs font-semibold inline-block text-primary current-fast-progress-text">
+                                    {% if current_fast.target_hours %}
+                                        {{ "%.1f"|format(current_fast.progress) }}%
+                                    {% else %}
+                                        Ongoing
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-purple-200 dark:bg-purple-900">
+                            <div id="fastingProgressBar" {% if current_fast.target_hours %}style="width: {{ current_fast.progress|round|int }}%"{% else %}style="width: 100%"{% endif %} class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary current-fast-progress-bar-inner"></div>
+                        </div>
+                    </div>
+                    {% if current_fast.target_hours %}
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Target: {{ current_fast.target_hours }} hours
+                    </p>
+                    {% endif %}
+                    <div class="flex space-x-4">
+                        <form action="{{ url_for('fasting.end_session', session_id=current_fast.id) }}" method="POST" class="flex-1">
+                            <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">
+                                End Fast
+                            </button>
+                        </form>
+                        <form action="{{ url_for('fasting.cancel_session', session_id=current_fast.id) }}" method="POST" class="flex-1">
+                            <button type="submit" onclick="return confirm('Are you sure you want to cancel this fast?')" 
+                                    class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800">
+                                Cancel Fast
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Start New Fast</h3>
+                <form method="POST" action="{{ url_for('fasting.tracker') }}" class="space-y-6">
+                    {{ form.hidden_tag() }}
+                    <div>
+                        <label for="{{ form.fasting_type.id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.fasting_type.label }}
+                        </label>
+                        <select id="{{ form.fasting_type.id }}" name="{{ form.fasting_type.name }}" 
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <optgroup label="Intermittent Fasts">
+                                {% for value, label in form.fasting_type.choices %}
+                                    {% if '/' in value %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Short Fasts">
+                                {% for value, label in form.fasting_type.choices %}
+                                    {% if value in ['24', '36', '48'] %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Extended Fasts">
+                                {% for value, label in form.fasting_type.choices %}
+                                    {% if value in ['72', '120', '168', '240', '336', '504'] %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Custom">
+                                {% for value, label in form.fasting_type.choices %}
+                                    {% if value == 'custom' %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                        </select>
+                        {% if form.fasting_type.errors %}
+                            {% for error in form.fasting_type.errors %}
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div id="custom_duration" class="hidden">
+                        <label for="{{ form.target_hours.id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.target_hours.label }}
+                        </label>
+                        <div class="mt-1">
+                            {{ form.target_hours(class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white", value="16") }}
+                        </div>
+                        {% if form.target_hours.errors %}
+                            {% for error in form.target_hours.errors %}
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="flex justify-end">
+                        {{ form.submit(class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary") }}
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Fasting History -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Fasting History</h3>
+            <div class="mt-5 max-h-[250px] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-lg dark:[&::-webkit-scrollbar-track]:bg-gray-700 [&::-webkit-scrollbar-thumb]:bg-primary [&::-webkit-scrollbar-thumb]:rounded-lg [&::-webkit-scrollbar-thumb]:hover:bg-primary-dark">
+                <div class="space-y-4 pr-2">
+                    {% if fasting_history %}
+                        {% for session in fasting_history %}
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                            {{ session.duration|round|int }}:{{ (session.duration % 1 * 60)|int }} hours
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            Started: {{ session.start_time.strftime('%Y-%m-%d %H:%M') }}
+                                        </p>
+                                        {% if session.target_hours %}
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                Target: {{ session.target_hours }} hours
+                                                {% if session.duration >= session.target_hours %}
+                                                    <span class="text-green-600 dark:text-green-400">(Achieved!)</span>
+                                                {% endif %}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        {% if session.duration >= session.target_hours %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                <i class="fas fa-check mr-1"></i> Goal Reached
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                                <i class="fas fa-clock mr-1"></i> Ended Early
+                                            </span>
+                                        {% endif %}
+                                        <form action="{{ url_for('fasting.delete_session', session_id=session.id) }}" method="POST" class="ml-2">
+                                            <button type="submit" 
+                                                    onclick="return confirm('Are you sure you want to delete this fasting session? This action cannot be undone.')"
+                                                    class="inline-flex items-center p-1 border border-transparent rounded-full text-red-600 hover:bg-red-100 dark:hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800"
+                                                    title="Delete this fasting session">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-500 dark:text-gray-400">No fasting history yet. Start your first fast!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Row: Statistics -->
+{% if stats %}
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Overall Statistics -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Overall Statistics</h3>
+            <dl class="mt-5 grid grid-cols-2 gap-5">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Fasts</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.total_fasts }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Hours</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ "%.1f"|format(stats.total_hours) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Average Duration</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ "%.1f"|format(stats.avg_duration) }}h</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Success Rate</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ "%.1f"|format(stats.success_rate) }}%</dd>
+                </div>
+                <div class="col-span-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Longest Fast</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ "%.1f"|format(stats.longest_fast.duration) }}h</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Recent Activity</h3>
+            <dl class="mt-5 grid grid-cols-1 gap-5">
+                <!-- Weekly Stats -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last 7 Days</dt>
+                    <dd class="mt-3">
+                        <div class="flex justify-between items-baseline">
+                            <div class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ stats.weekly_sessions }} fasts
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                {{ "%.1f"|format(stats.weekly_hours) }} hours
+                            </div>
+                        </div>
+                    </dd>
+                </div>
+                <!-- Monthly Stats -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last 30 Days</dt>
+                    <dd class="mt-3">
+                        <div class="flex justify-between items-baseline">
+                            <div class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ stats.monthly_sessions }} fasts
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                {{ "%.1f"|format(stats.monthly_hours) }} hours
+                            </div>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Streaks and Achievements -->
+    {% if streaks %}
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Streaks & Achievements</h3>
+            <dl class="mt-5 grid grid-cols-1 gap-5">
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Current Streak</dt>
+                    <dd class="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ streaks.current_streak }} successful fasts
+                    </dd>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Best Streak</dt>
+                    <dd class="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ streaks.best_streak }} successful fasts
+                    </dd>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Weekly Consistency</dt>
+                    <dd class="mt-3">
+                        <div class="flex items-center">
+                            <div class="flex-1">
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded bg-purple-200 dark:bg-purple-900">
+                                        {% set consistency_value = streaks.weekly_consistency|default(0) %}
+                                        <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary" {% if consistency_value is defined %}style="width: {{ consistency_value }}%"{% endif %}>
+                                            <span class="sr-only">{{ consistency_value }}% consistency</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ml-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ "%.0f"|format(streaks.weekly_consistency|default(0)) }}%
+                            </div>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form handling for starting a new fast
+        const fastingType = document.getElementById('{{ form.fasting_type.id }}');
+        const customDuration = document.getElementById('custom_duration');
+        const targetHoursInput = document.getElementById('{{ form.target_hours.id }}');
+        
+        if (fastingType && customDuration && targetHoursInput) {
+            function updateTargetHours() {
+                const selectedValue = fastingType.value;
+                if (selectedValue === 'custom') {
+                    customDuration.classList.remove('hidden');
+                } else {
+                    customDuration.classList.add('hidden');
+                    // Set the target hours based on the selected fasting type
+                    const hours = selectedValue.split('/')[0] || selectedValue;
+                    targetHoursInput.value = hours;
+                }
+            }
+
+            fastingType.addEventListener('change', updateTargetHours);
+            // Initial update
+            updateTargetHours();
+        }
+        
+        // Fast status update functionality
+        initializeFastStatusUpdates();
+    });
+    
+    // Function to initialize fast status updates
+    function initializeFastStatusUpdates() {
+        // Setup fast update interval if there's an active fast
+        let fastUpdateIntervalId = null;
+        
+        // Check if there's an active fast using a data attribute
+        const hasFastElement = document.getElementById('has-active-fast');
+        const hasActiveFast = hasFastElement ? true : false;
+        
+        if (hasActiveFast) {
+            // Initialize the update interval for active fast
+            fastUpdateIntervalId = setInterval(function() {
+                const statusUrl = hasFastElement.getAttribute('data-status-url');
+                fetch(statusUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok: ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.active) {
+                            const durationElement = document.querySelector('.current-fast-elapsed-time');
+                            const progressBar = document.querySelector('.current-fast-progress-bar-inner');
+                            const progressText = document.querySelector('.current-fast-progress-text');
+                            
+                            if (durationElement && typeof data.elapsed_hours === 'number') {
+                                // Convert elapsed_hours (float) to hh:mm:ss
+                                const totalSeconds = Math.floor(data.elapsed_hours * 3600);
+                                const hours = Math.floor(totalSeconds / 3600);
+                                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                                const seconds = totalSeconds % 60;
+                                durationElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                            }
+                            
+                            if (progressBar && typeof data.progress_percentage === 'number') {
+                                progressBar.style.width = data.progress_percentage.toFixed(1) + '%';
+                            }
+    
+                            if (progressText && typeof data.progress_percentage === 'number') {
+                                progressText.textContent = data.progress_percentage.toFixed(1) + '%';
+                            }
+                        } else {
+                            // Fast is no longer active, clear interval and reload to update UI
+                            clearInterval(fastUpdateIntervalId);
+                            window.location.reload(); 
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching fast status:', error);
+                        // Optionally, stop trying if there are persistent errors
+                        // clearInterval(fastUpdateIntervalId);
+                    });
+            }, 1000);
+        }
+    }
+</script>
+
+{% if current_fast %}
+<!-- Hidden element to indicate active fast and provide status URL -->
+<div id="has-active-fast" data-status-url="{{ url_for('fasting.status') }}" style="display: none;"></div>
+{% endif %}
+{% endblock %}

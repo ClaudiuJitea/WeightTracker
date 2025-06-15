@@ -1,0 +1,187 @@
+<!-- Bottom Row: Additional Calorie Information -->
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Nutritional Breakdown -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Nutritional Breakdown</h3>
+            <dl class="mt-5 grid grid-cols-2 gap-5">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Protein</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ "%.1f"|format(daily_nutrients.protein if daily_nutrients else 0) }}g
+                        <span class="text-sm text-gray-500 dark:text-gray-400">/ {{ target_nutrients.protein }}g</span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Carbs</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ "%.1f"|format(daily_nutrients.carbs if daily_nutrients else 0) }}g
+                        <span class="text-sm text-gray-500 dark:text-gray-400">/ {{ target_nutrients.carbs }}g</span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Fat</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ "%.1f"|format(daily_nutrients.fat if daily_nutrients else 0) }}g
+                        <span class="text-sm text-gray-500 dark:text-gray-400">/ {{ target_nutrients.fat }}g</span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Fiber</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ "%.1f"|format(daily_nutrients.fiber if daily_nutrients else 0) }}g
+                        <span class="text-sm text-gray-500 dark:text-gray-400">/ {{ target_nutrients.fiber }}g</span>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Weekly Overview -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Weekly Overview</h3>
+            <dl class="mt-5 space-y-4">
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Average Daily Calories</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ "%.0f"|format(weekly_stats.avg_calories if weekly_stats else 0) }}
+                        <span class="text-sm text-gray-500 dark:text-gray-400">kcal/day</span>
+                    </dd>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Calorie Goal Adherence</dt>
+                    <dd class="mt-1">
+                        <div class="flex items-center">
+                            <div class="flex-1">
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded bg-purple-200 dark:bg-purple-900">
+                                        {% set adherence_value = weekly_stats.goal_adherence if weekly_stats else 0 %}
+                                        <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"
+                                             {% if adherence_value > 0 %}style="width: {{ adherence_value }}%"{% else %}style="width: 0%"{% endif %}>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ml-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ "%.0f"|format(weekly_stats.goal_adherence if weekly_stats else 0) }}%
+                            </div>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Meal Time Distribution -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Meal Time Distribution</h3>
+            <dl class="mt-5 space-y-4">
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Breakfast (6AM-11AM)</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ "%.0f"|format(meal_distribution.breakfast if meal_distribution else 0) }}
+                        <span class="text-sm text-gray-500 dark:text-gray-400">kcal</span>
+                    </dd>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Lunch (11AM-4PM)</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ "%.0f"|format(meal_distribution.lunch if meal_distribution else 0) }}
+                        <span class="text-sm text-gray-500 dark:text-gray-400">kcal</span>
+                    </dd>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Dinner (4PM-10PM)</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {{ "%.0f"|format(meal_distribution.dinner if meal_distribution else 0) }}
+                        <span class="text-sm text-gray-500 dark:text-gray-400">kcal</span>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Insights -->
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- Frequent Foods -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Most Frequent Foods</h3>
+            <div class="mt-5 space-y-4">
+                {% if frequent_foods %}
+                    {% for food in frequent_foods %}
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ food.name }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ food.count }} times this week</p>
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ food.calories }} kcal/serving
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-gray-500 dark:text-gray-400">No frequent foods logged yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Nutritional Goals -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Nutritional Goals Progress</h3>
+            <div class="mt-5 space-y-4">
+                <!-- Protein Goal -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">Protein Goal</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ "%.0f"|format(daily_nutrients.protein_percentage if daily_nutrients else 0) }}%
+                        </span>
+                    </div>
+                    <div class="relative pt-1">
+                        <div class="overflow-hidden h-2 text-xs flex rounded bg-purple-200 dark:bg-purple-900">
+                            {% set protein_value = daily_nutrients.protein_percentage if daily_nutrients else 0 %}
+                            <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"
+                                 {% if protein_value > 0 %}style="width: {{ protein_value }}%"{% else %}style="width: 0%"{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Carbs/Fat Ratio -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">Carbs/Fat Ratio</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ "%.1f"|format(daily_nutrients.carbs_fat_ratio if daily_nutrients else 0) }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Target: 1.5 - 2.5</p>
+                </div>
+                <!-- Fiber Goal -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">Fiber Goal</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ "%.0f"|format(daily_nutrients.fiber_percentage if daily_nutrients else 0) }}%
+                        </span>
+                    </div>
+                    <div class="relative pt-1">
+                        <div class="overflow-hidden h-2 text-xs flex rounded bg-purple-200 dark:bg-purple-900">
+                            {% set fiber_value = daily_nutrients.fiber_percentage if daily_nutrients else 0 %}
+                            <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"
+                                 {% if fiber_value > 0 %}style="width: {{ fiber_value }}%"{% else %}style="width: 0%"{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
